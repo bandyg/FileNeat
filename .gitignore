@@ -1,0 +1,37 @@
+# .gitignore file for Nextron project
+
+### Node_modules
+node_modules/
+package-lock.json
+yarn.lock
+
+### Next.js Build Files
+.next/**
+public/build/
+
+### Electron Artifacts
+out/
+dist-electron/*
+*.asar
+
+### Logs and Editor Files
+*.log
+*.swp
+*.swo
+.DS_Store
+.idea
+
+
+### Temporary Files
+*.tmp
+*.temp
+*.md # except for README.md, etc.
+
+### Local Development
+.env.local
+config.js
+
+### IDE and Language Specific
+.idea
+.vscode
+*.sublime-workspace

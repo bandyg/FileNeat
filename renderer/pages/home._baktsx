@@ -1,0 +1,106 @@
+import { useState } from 'react';
+import { Button, Checkbox, CheckboxGroup, Flex, Heading, VStack, useToast } from '@chakra-ui/react';
+import styles from '../styles/Home.module.css';
+
+const rulesList = ['按文件类型分类', '按日期整理', '按项目分类', '自动重命名重复文件'];
+
+const Home = () => {
+  const [selectedFolder, setSelectedFolder] = useState('');
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const toast = useToast();
+
+  const openFolderDialog = async () => {
+    window.ipc.send('open-folder-dialog', null); // Send the request to open the folder dialog
+    return new Promise<string[]>((resolve) => {
+      window.ipc.once('folder-dialog-response', (response: any) => {
+        if (response.error) {
+          console.error('Error opening folder dialog:', response.error);
+          resolve([]); // Resolve with an empty array on error
+        } else {
+          resolve(response); // Resolve with the array of selected folder paths
+        }
+      });
+    });
+  };
+
+  const handleFolderSelect = async () => {
+    const folderPaths = await openFolderDialog(); // Call the updated function
+    console.log('Selected folder paths:', folderPaths); // This will log the selected folder paths
+  };
+
+  const startOrganization = async () => {
+    // setIsProcessing(true);
+    // try {
+    //   if (typeof window === 'undefined') return;
+    //   const structure = await window.electronAPI.readFolder(selectedFolder);
+    //   const result = await window.electronAPI.processOrganization({
+    //     structure,
+    //     rules: selectedRules,
+    //   });
+    //   const { app } = await import('electron').then((electron) => ({
+    //     app: electron.app,
+    //   }));
+    //   const path = await import('path');
+    //   for (const shortcut of result.shortcuts) {
+    //     await window.electronAPI.createShortcut(
+    //       shortcut.originalPath,
+    //       path.join(app.getPath('desktop'), shortcut.shortcutPath)
+    //     );
+    //   }
+    //   toast({
+    //     title: '整理完成！',
+    //     status: 'success',
+    //     duration: 3000,
+    //     isClosable: true,
+    //   });
+    // } catch (error) {
+    //   console.error(error);
+    //   toast({
+    //     title: '处理过程中出现错误',
+    //     status: 'error',
+    //     duration: 3000,
+    //     isClosable: true,
+    //   });
+    // }
+    // setIsProcessing(false);
+  };
+
+  return (
+    <Flex direction='column' align='center' justify='center' className={styles.container}>
+      <Heading as='h1' size='xl' mb={8}>
+        智能文件整理助手
+      </Heading>
+      <VStack spacing={4} align='flex-start' mb={8}>
+        <Button onClick={handleFolderSelect} isDisabled={isProcessing}>
+          选择文件夹
+        </Button>
+        {selectedFolder && <p>已选择：{selectedFolder}</p>}
+      </VStack>
+      <VStack spacing={4} align='flex-start' mb={8}>
+        <Heading as='h3' size='md'>
+          整理规则：
+        </Heading>
+        <CheckboxGroup value={selectedRules} onChange={(values) => setSelectedRules(values as string[])}>
+          <VStack spacing={2}>
+            {rulesList.map((rule) => (
+              <Checkbox key={rule} value={rule}>
+                {rule}
+              </Checkbox>
+            ))}
+          </VStack>
+        </CheckboxGroup>
+      </VStack>
+      <Button
+        onClick={startOrganization}
+        isLoading={isProcessing}
+        loadingText='处理中...'
+        disabled={!selectedFolder || isProcessing}
+      >
+        开始整理
+      </Button>
+    </Flex>
+  );
+};
+
+export default Home;
